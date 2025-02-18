@@ -40,7 +40,7 @@ workflow reference {
     DOWNLOAD_REFERENCE(genome_url_ch, genome_base_ch)
     
     emit:
-    ref_fasta = DOWNLOAD_REFERENCE.out[0]
+    ref_fa = DOWNLOAD_REFERENCE.out[0]
     ref_fai = DOWNLOAD_REFERENCE.out[1]
     ref_amb = DOWNLOAD_REFERENCE.out[2]
     ref_ann = DOWNLOAD_REFERENCE.out[3]
@@ -142,12 +142,12 @@ process ALIGN_BWA {
     def r2 = cleaned_reads.find { it.name.contains('R2') }
     """
     # Ensure bwa index is present
-    bwa index ${ref_fasta} || true
+    bwa index ${ref_fa} || true
 
     if [ -f "${r2}" ]; then
-        bwa mem -t 4 ${ref_fasta} ${r1} ${r2} | samtools sort -o ${sample_id}.sorted.bam
+        bwa mem -t 4 ${ref_fa} ${r1} ${r2} | samtools sort -o ${sample_id}.sorted.bam
     else
-        bwa mem -t 4 ${ref_fasta} ${r1}       | samtools sort -o ${sample_id}.sorted.bam
+        bwa mem -t 4 ${ref_fa} ${r1}       | samtools sort -o ${sample_id}.sorted.bam
     fi
 
     samtools index ${sample_id}.sorted.bam
