@@ -50,8 +50,12 @@ workflow reference {
     emit:
     ref_fasta = DOWNLOAD_REFERENCE.out[0]
     ref_fai = DOWNLOAD_REFERENCE.out[1]
-    ref_dict = DOWNLOAD_REFERENCE.out[2]
-
+    ref_amb = DOWNLOAD_REFERENCE.out[2]
+    ref_ann = DOWNLOAD_REFERENCE.out[3]
+    ref_bwt = DOWNLOAD_REFERENCE.out[4]
+    ref_pac = DOWNLOAD_REFERENCE.out[5]
+    ref_sa = DOWNLOAD_REFERENCE.out[6]
+    ref_dict = DOWNLOAD_REFERENCE.out[7]
 }
 
 // Download the reference genome if it does not exist, then index it
@@ -67,7 +71,12 @@ process DOWNLOAD_REFERENCE {
     output:
     path "${genome_base}.fasta"        , emit: ref_fasta
     path "${genome_base}.fasta.fai", emit: ref_fai
-    path "${genome_base.replaceAll('.fa$|.fasta$', '')}.dict", emit: ref_dict
+    path "${genome_base}.fasta.amb", emit: ref_amb
+    path "${genome_base}.fasta.ann", emit: ref_ann
+    path "${genome_base}.fasta.bwt", emit: ref_bwt
+    path "${genome_base}.fasta.pac", emit: ref_pac
+    path "${genome_base}.fasta.sa", emit: ref_sa
+    path "${genome_base}.dict", emit: ref_dict
 
     script:
     """
@@ -82,6 +91,7 @@ process DOWNLOAD_REFERENCE {
     ##gatk CreateSequenceDictionary -R ${genome_name} -O ${genome_name.replaceAll('.fa$|.fasta$', '')}.dict
     
     ## get fasta
+    cho "Downloading: ${genome_base}.fasta"
     curl -L -o ${genome_base}.fasta ${genome_url}/${genome_base}.fasta
 
     ##get rest from API also
@@ -90,6 +100,8 @@ process DOWNLOAD_REFERENCE {
         echo "Downloading: ${genome_base}.fasta.\$x"
         curl -L -o ${genome_base}.fasta.\$x ${genome_url}/${genome_base}.fasta.\$x
     done
+    cho "Downloading: ${genome_base}.dict"
+    curl -L -o ${genome_base}.dict ${genome_url}/${genome_base}.dict
     """
 }
 
