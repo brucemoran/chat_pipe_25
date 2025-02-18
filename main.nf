@@ -108,17 +108,17 @@ process FASTP_QC {
     script:
     """
     ## If fq2 is empty, run single-end; otherwise, run paired-end
-    if [ -f ${fq2} ] {
+    if [ -f ${fq2} ]; then
         fastp \\
             --in1 ${fq1} --in2 ${fq2} \\
             --out1 cleaned_R1.fastq.gz --out2 cleaned_R2.fastq.gz \\
             --thread 4
-    } else {
+    else
         fastp \\
             --in1 ${fq1} \\
             --out1 cleaned_R1.fastq.gz \\
             --thread 4
-    }
+    fi
     """
 }
 
