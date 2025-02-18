@@ -87,6 +87,7 @@ process INDEX_REFERENCE {
 }
 
 process DICT_REFERENCE {
+    memory '20 GB'
     tag 'download_grch38'
     publishDir "${params.outdir}/reference", mode: 'copy'
 
