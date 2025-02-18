@@ -65,7 +65,17 @@ Channel
 
 //workflow for reference
 workflow reference {
-    DOWNLOAD_REFERENCE(genome_url_ch, genome_name_ch)
+    take:
+    genome_url_ch
+    genome_name_ch
+
+    main:
+    [ref_fasta, ref_fai, ref_dict] = DOWNLOAD_REFERENCE(genome_url_ch, genome_name_ch)
+    
+    emit:
+    ref_fasta
+    ref_fai
+    ref_dict
 }
 
 // Download the reference genome if it does not exist, then index it
