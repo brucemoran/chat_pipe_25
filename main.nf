@@ -92,7 +92,6 @@ process DICT_REFERENCE {
 
     input:
     path ref_fa
-    path ref_fai
 
     output:
     path "${ref_fa}.dict", emit: ref_dict
