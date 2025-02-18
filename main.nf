@@ -278,12 +278,12 @@ workflow {
     reference(genome_url_ch, genome_name_ch)
 
     // Now process each sample in turn
-    sample_info_ch \
-        | FASTP_QC \
-        | ALIGN_BWA(reference.out.ref_fasta, reference.out.ref_fai) \
-        | MARKDUP_BQSR(reference.out.ref_fasta, 
-                       reference.out.ref_fai, 
-                       reference.out.ref_dict) \
-        | MUTECT2_CALL(reference.out.ref_fasta) \
-        | PCGR_ANNOTATE
+    // sample_info_ch \
+    //     | FASTP_QC \
+    //     | ALIGN_BWA(reference.out.ref_fasta, reference.out.ref_fai) \
+    //     | MARKDUP_BQSR(reference.out.ref_fasta, 
+    //                    reference.out.ref_fai, 
+    //                    reference.out.ref_dict) \
+    //     | MUTECT2_CALL(reference.out.ref_fasta) \
+    //     | PCGR_ANNOTATE
 }
