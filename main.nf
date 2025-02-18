@@ -297,18 +297,18 @@ workflow {
             return [ sample_id, fq1, fq2 ]
         }
     // Now process each sample in turn
-    sample_info_ch.view()
-    //FASTP_QC(sample_info_ch)
-    // ALIGN_BWA(sample_info_ch,
-    //           reference.out.ref_fa, 
-    //           reference.out.ref_fai,
-    //           reference.out.ref_dict,
-    //           reference.out.ref_ann,
-    //           reference.out.ref_amb,
-    //           reference.out.ref_bwt,
-    //           reference.out.ref_pac,
-    //           reference.out.ref_sa)
-    // MARKDUP_BQSR(ALIGN_BWA.out)
-    // MUTECT2_CALL(MARKDUP_BQSR.out)
-    // PCGR_ANNOTATE(MUTECT2_CALL.out)
+    //sample_info_ch.view()
+    FASTP_QC(sample_info_ch)
+    ALIGN_BWA(sample_info_ch,
+              reference.out.ref_fa, 
+              reference.out.ref_fai,
+              reference.out.ref_dict,
+              reference.out.ref_ann,
+              reference.out.ref_amb,
+              reference.out.ref_bwt,
+              reference.out.ref_pac,
+              reference.out.ref_sa)
+    MARKDUP_BQSR(ALIGN_BWA.out)
+    MUTECT2_CALL(MARKDUP_BQSR.out)
+    PCGR_ANNOTATE(MUTECT2_CALL.out)
 }
