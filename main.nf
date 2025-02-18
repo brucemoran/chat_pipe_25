@@ -297,7 +297,8 @@ workflow {
             return [ sample_id, fq1, fq2 ]
         }
     // Now process each sample in turn
-    FASTP_QC(sample_info_ch)
+    sample_info_ch.view()
+    //FASTP_QC(sample_info_ch)
     // ALIGN_BWA(sample_info_ch,
     //           reference.out.ref_fa, 
     //           reference.out.ref_fai,
