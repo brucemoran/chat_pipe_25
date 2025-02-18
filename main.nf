@@ -142,8 +142,8 @@ process ALIGN_BWA {
 
     input:
     tuple val(sample_id), path(cleaned_reads)
-    path ref_fasta     from download_reference.out.ref_fasta
-    path ref_fai       from download_reference.out.ref_fai
+    path ref_fasta     from reference.out.ref_fasta
+    path ref_fai       from reference.out.ref_fai
 
     output:
     tuple val(sample_id), path("${sample_id}.sorted.bam")
@@ -174,9 +174,9 @@ process MARKDUP_BQSR {
 
     input:
     tuple val(sample_id), path(bam)
-    path ref_fasta from download_reference.out.ref_fasta
-    path ref_fai   from download_reference.out.ref_fai
-    path ref_dict  from download_reference.out.ref_dict
+    path ref_fasta from reference.out.ref_fasta
+    path ref_fai   from reference.out.ref_fai
+    path ref_dict  from reference.out.ref_dict
 
     output:
     tuple val(sample_id), path("${sample_id}.dedup.recal.bam")
@@ -220,7 +220,7 @@ process MUTECT2_CALL {
 
     input:
     tuple val(sample_id), path(bam)
-    path ref_fasta from download_reference.out.ref_fasta
+    path ref_fasta from reference.out.ref_fasta
 
     output:
     tuple val(sample_id), path("${sample_id}.mutect2.vcf.gz")
