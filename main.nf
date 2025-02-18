@@ -25,12 +25,6 @@ params.genome_url  = 'https://storage.googleapis.com/genomics-public-data/refere
 //params.genome_base = 'GRCh38.fa'
 //make the real name, use a base and download everything with that base
 params.genome_base = 'Homo_sapiens_assembly38'
-// Container images
-params.fastp   = 'quay.io/biocontainers/fastp:0.23.2--h0b8a92a_1'
-params.bwa     = 'quay.io/biocontainers/bwa:0.7.17--hed695b0_7'
-params.samtools= 'quay.io/biocontainers/samtools:1.11--h6270b1f_0'
-params.gatk    = 'broadinstitute/gatk:4.2.6.1'
-params.pcgr    = 'sigven/pcgr:latest'
 
 /////////////////////////////////////////////////////
 // Processes
@@ -59,7 +53,6 @@ workflow reference {
 // Download the reference genome if it does not exist, then index it
 process DOWNLOAD_REFERENCE {
     tag 'download_grch38'
-    container 'curlimages/curl:latest'
     publishDir "${params.outdir}/reference", mode: 'copy'
 
     input:
@@ -96,7 +89,6 @@ process DOWNLOAD_REFERENCE {
 // Run fastp QC on single- or paired-end FASTQs
 process FASTP_QC {
     tag { sample_id }
-    container "${params.fastp}"
     publishDir "${params.outdir}/fastp", mode: 'copy'
 
     input:
@@ -125,7 +117,6 @@ process FASTP_QC {
 // Align reads with bwa mem and produce a sorted BAM
 process ALIGN_BWA {
     tag { sample_id }
-    container "${params.bwa}"
     publishDir "${params.outdir}/bam", mode: 'copy'
 
     input:
@@ -166,7 +157,6 @@ process ALIGN_BWA {
 // Mark duplicates & perform Base Quality Score Recalibration
 process MARKDUP_BQSR {
     tag { sample_id }
-    container "${params.gatk}"
     publishDir "${params.outdir}/bam", mode: 'copy'
 
     input:
@@ -214,7 +204,6 @@ process MARKDUP_BQSR {
 // Call somatic variants with GATK Mutect2
 process MUTECT2_CALL {
     tag { sample_id }
-    container "${params.gatk}"
     publishDir "${params.outdir}/vcf", mode: 'copy'
 
     input:
@@ -238,7 +227,6 @@ process MUTECT2_CALL {
 // Annotate the final VCF with PCGR
 process PCGR_ANNOTATE {
     tag { sample_id }
-    container "${params.pcgr}"
     publishDir "${params.outdir}/pcgr", mode: 'copy'
 
     input:
