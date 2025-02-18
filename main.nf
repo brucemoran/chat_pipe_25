@@ -100,7 +100,7 @@ process DICT_REFERENCE {
     """
     ## get fasta
     echo "CreateSequenceDictionary: ${ref_fa}"
-    gatk CreateSequenceDictionary -R ${ref_fa} -O ${ref_fa}.dict --MAX_RECORDS_IN_RAM 10000
+    gatk --java-options "-Xmx 20G" CreateSequenceDictionary -R ${ref_fa} -O ${ref_fa}.dict
     """
 }
 
