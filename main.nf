@@ -69,7 +69,7 @@ process DOWNLOAD_REFERENCE {
     val genome_base
 
     output:
-    path "${genome_base}.fasta"        , emit: ref_fasta
+    path "${genome_base}.fasta", emit: ref_fa
     path "${genome_base}.fasta.fai", emit: ref_fai
     path "${genome_base}.fasta.amb", emit: ref_amb
     path "${genome_base}.fasta.ann", emit: ref_ann
@@ -148,11 +148,20 @@ process ALIGN_BWA {
 
     input:
     tuple val(sample_id), path(cleaned_reads)
-    path ref_fasta     from reference.out.ref_fasta
-    path ref_fai       from reference.out.ref_fai
+    path ref_fa   
+    path ref_fai
+    path ref_dict
+    path ref_ann
+    path ref_amb
+    path ref_bwt
+    path ref_pac
+    path ref_sa
 
     output:
     tuple val(sample_id), path("${sample_id}.sorted.bam")
+    path ref_fa
+    path ref_fai
+    path ref_dict
 
     script:
     // cleaned_reads might have 1 or 2 fastq files
@@ -180,12 +189,14 @@ process MARKDUP_BQSR {
 
     input:
     tuple val(sample_id), path(bam)
-    path ref_fasta from reference.out.ref_fasta
-    path ref_fai   from reference.out.ref_fai
-    path ref_dict  from reference.out.ref_dict
+    path ref_fa
+    path ref_fai
+    path ref_dict
 
     output:
     tuple val(sample_id), path("${sample_id}.dedup.recal.bam")
+    path ref_fa
+    path ref_fai
 
     script:
     def outBamPrefix = "${sample_id}.dedup.recal"
@@ -202,14 +213,14 @@ process MARKDUP_BQSR {
     # Example known-sites from GATK resources (b37 used for demonstration).
     # Adjust for GRCh38 best-practice known sites in a real pipeline
     gatk BaseRecalibrator \\
-        -R ${ref_fasta} \\
+        -R ${ref_fa} \\
         -I ${sample_id}.dedup.bam \\
         --known-sites https://storage.googleapis.com/gatk-best-practices/somatic-b37/1000G_phase1.indels.b37.vcf.gz \\
         --known-sites https://storage.googleapis.com/gatk-best-practices/somatic-b37/dbsnp_138.b37.vcf.gz \\
         -O ${sample_id}.recal_data.table
 
     gatk ApplyBQSR \\
-        -R ${ref_fasta} \\
+        -R ${ref_fa} \\
         -I ${sample_id}.dedup.bam \\
         --bqsr-recal-file ${sample_id}.recal_data.table \\
         -O ${outBamPrefix}.bam
@@ -226,7 +237,7 @@ process MUTECT2_CALL {
 
     input:
     tuple val(sample_id), path(bam)
-    path ref_fasta from reference.out.ref_fasta
+    path ref_fa
 
     output:
     tuple val(sample_id), path("${sample_id}.mutect2.vcf.gz")
@@ -234,7 +245,7 @@ process MUTECT2_CALL {
     script:
     """
     gatk Mutect2 \\
-        -R ${ref_fasta} \\
+        -R ${ref_fa} \\
         -I ${bam} \\
         -tumor ${sample_id} \\
         -O ${sample_id}.mutect2.vcf.gz
@@ -295,12 +306,17 @@ workflow {
             return [ sample_id, fq1, fq2 ]
         }
     // Now process each sample in turn
-    sample_info_ch \
-        | FASTP_QC \
-        | ALIGN_BWA(reference.out.ref_fasta, reference.out.ref_fai) \
-        | MARKDUP_BQSR(reference.out.ref_fasta, 
-                       reference.out.ref_fai, 
-                       reference.out.ref_dict) \
-        | MUTECT2_CALL(reference.out.ref_fasta) \
-        | PCGR_ANNOTATE
+    FASTP_QC(sample_info_ch)
+    ALIGN_BWA(sample_info_ch,
+              reference.out.ref_fa, 
+              reference.out.ref_fai,
+              reference.out.ref_dict,
+              reference.out.ref_ann,
+              reference.out.ref_amb,
+              reference.out.ref_bwt,
+              reference.out.ref_pac,
+              reference.out.ref_sa)
+    MARKDUP_BQSR(ALIGN_BWA.out)
+    MUTECT2_CALL(MARKDUP_BQSR.out)
+    PCGR_ANNOTATE(MUTECT2_CALL.out)
 }
