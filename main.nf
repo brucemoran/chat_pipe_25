@@ -118,6 +118,7 @@ process FASTP_QC {
             --in1 ${fq1} \\
             --out1 cleaned_R1.fastq.gz \\
             --thread 4
+    }
     """
 }
 
