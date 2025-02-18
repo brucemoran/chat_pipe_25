@@ -70,12 +70,12 @@ workflow reference {
     genome_name_ch
 
     main:
-    [ref_fasta, ref_fai, ref_dict] = DOWNLOAD_REFERENCE(genome_url_ch, genome_name_ch)
+    DOWNLOAD_REFERENCE(genome_url_ch, genome_name_ch)
     
     emit:
-    ref_fasta
-    ref_fai
-    ref_dict
+    DOWNLOAD_REFERENCE.out[0] //ref_fasta
+    DOWNLOAD_REFERENCE.out[1] //ref_fai
+    DOWNLOAD_REFERENCE.out[2] //ref_dict
 }
 
 // Download the reference genome if it does not exist, then index it
