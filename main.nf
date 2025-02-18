@@ -107,7 +107,7 @@ process FASTP_QC {
 
     script:
     """
-    // If fq2 is empty, run single-end; otherwise, run paired-end
+    ## If fq2 is empty, run single-end; otherwise, run paired-end
     if [ -f ${fq2} ] {
         fastp \\
             --in1 ${fq1} --in2 ${fq2} \\
