@@ -38,12 +38,13 @@ workflow reference {
 
     main:
     CURL_REFERENCE(genome_url_ch, genome_base_ch)
-    PROCESS_REFERENCE(CURL_REFERENCE.out)
+    INDEX_REFERENCE(CURL_REFERENCE.out)
+    DICT_REFERENCE(CURL_REFERENCE.out)
 
     emit:
-    ref_fa = PROCESS_REFERENCE.out[0]
-    ref_fai = PROCESS_REFERENCE.out[1]
-    ref_dict = PROCESS_REFERENCE.out[2]
+    ref_fa = INDEX_REFERENCE.out[0]
+    ref_fai = INDEX_REFERENCE.out[1]
+    ref_dict = DICT_REFERENCE.out
 }
 
 // Download the reference genome if it does not exist, then index it
@@ -66,7 +67,7 @@ process CURL_REFERENCE {
     """
 }
 
-process PROCESS_REFERENCE {
+process INDEX_REFERENCE {
     tag 'download_grch38'
     publishDir "${params.outdir}/reference", mode: 'copy'
 
@@ -76,13 +77,30 @@ process PROCESS_REFERENCE {
     output:
     path "${ref_fa}", emit: ref_fa
     path "${ref_fa}.fai", emit: ref_fai
-    path "${ref_fa}.dict", emit: ref_dict
 
     script:
     """
     ## get fasta
     echo "Indexing: ${ref_fa}"
     samtools faidx ${ref_fa}
+    """
+}
+
+process DICT_REFERENCE {
+    tag 'download_grch38'
+    publishDir "${params.outdir}/reference", mode: 'copy'
+
+    input:
+    path ref_fa
+    path ref_fai
+
+    output:
+    path "${ref_fa}.dict", emit: ref_dict
+
+    script:
+    """
+    ## get fasta
+    echo "CreateSequenceDictionary: ${ref_fa}"
     gatk CreateSequenceDictionary -R ${ref_fa} -O ${ref_fa}.dict
     """
 }
