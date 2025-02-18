@@ -261,7 +261,7 @@ process PCGR_ANNOTATE {
 
 workflow {
     // Download reference files (runs once)
-    take: 
+    //take: 
     download_reference = DOWNLOAD_REFERENCE(genome_url_ch, genome_name_ch)
 
     // Now process each sample in turn
