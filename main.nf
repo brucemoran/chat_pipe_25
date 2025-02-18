@@ -81,7 +81,7 @@ process DOWNLOAD_REFERENCE {
     script:
     """
     ## get fasta
-    cho "Downloading: ${genome_base}.fasta"
+    echo "Downloading: ${genome_base}.fasta"
     curl -L -o ${genome_base}.fasta ${genome_url}/${genome_base}.fasta
 
     ##get rest from API also
@@ -90,7 +90,7 @@ process DOWNLOAD_REFERENCE {
         echo "Downloading: ${genome_base}.fasta.\$x"
         curl -L -o ${genome_base}.fasta.\$x ${genome_url}/${genome_base}.fasta.\$x
     done
-    cho "Downloading: ${genome_base}.dict"
+    echo "Downloading: ${genome_base}.dict"
     curl -L -o ${genome_base}.dict ${genome_url}/${genome_base}.dict
     """
 }
