@@ -53,7 +53,7 @@ Channel
 // Simple channels for the reference parameters
 genome_url_ch = Channel.value(params.genome_url)
 
-genome_name_ch Channel.value(params.genome_name)
+genome_name_ch = Channel.value(params.genome_name)
 
 /////////////////////////////////////////////////////
 // Processes
