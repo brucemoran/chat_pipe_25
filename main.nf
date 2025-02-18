@@ -106,25 +106,18 @@ process FASTP_QC {
     tuple val(sample_id), path("cleaned_*.fastq.gz")
 
     script:
+    """
     // If fq2 is empty, run single-end; otherwise, run paired-end
-    def cmd
-    if (fq2) {
-        cmd = """
+    if [ -f fq2 ] {
         fastp \\
             --in1 ${fq1} --in2 ${fq2} \\
             --out1 cleaned_R1.fastq.gz --out2 cleaned_R2.fastq.gz \\
             --thread 4
-        """
     } else {
-        cmd = """
         fastp \\
             --in1 ${fq1} \\
             --out1 cleaned_R1.fastq.gz \\
             --thread 4
-        """
-    }
-    """
-    $cmd
     """
 }
 
@@ -300,7 +293,7 @@ workflow {
     // Now process each sample in turn
     //sample_info_ch.view()
     FASTP_QC(sample_info_ch)
-    ALIGN_BWA(sample_info_ch,
+    ALIGN_BWA(FASTP_QC.out,
               reference.out.ref_fa, 
               reference.out.ref_fai,
               reference.out.ref_dict,
