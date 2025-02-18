@@ -102,7 +102,7 @@ process FASTP_QC {
     publishDir "${params.outdir}/fastp", mode: 'copy'
 
     input:
-    tuple val(sample_id), val(fq1), val(fq2)
+    tuple val(sample_id), path(fq1), path(fq2)
 
     output:
     tuple val(sample_id), path("cleaned_*.fastq.gz")
