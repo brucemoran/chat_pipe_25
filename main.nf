@@ -50,10 +50,6 @@ Channel
     }
     .set { sample_info_ch }
 
-// Simple channels for the reference parameters
-genome_url_ch = Channel.value(params.genome_url)
-
-genome_name_ch = Channel.value(params.genome_name)
 
 /////////////////////////////////////////////////////
 // Processes
@@ -274,7 +270,12 @@ workflow {
     // Download reference files (runs once)
     //take: 
     //download_reference = DOWNLOAD_REFERENCE(genome_url_ch, genome_name_ch)
-    reference()
+    // Simple channels for the reference parameters
+    genome_url_ch = Channel.value(params.genome_url)
+
+    genome_name_ch = Channel.value(params.genome_name)
+
+    reference(genome_url_ch, genome_name_ch)
 
     // Now process each sample in turn
     sample_info_ch \
