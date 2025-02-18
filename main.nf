@@ -63,6 +63,11 @@ Channel
 // Processes
 /////////////////////////////////////////////////////
 
+//workflow for reference
+workflow reference {
+    DOWNLOAD_REFERENCE(genome_url_ch, genome_name_ch)
+}
+
 // Download the reference genome if it does not exist, then index it
 process DOWNLOAD_REFERENCE {
     tag 'download_grch38'
@@ -70,8 +75,8 @@ process DOWNLOAD_REFERENCE {
     publishDir "${params.outdir}/reference", mode: 'copy'
 
     input:
-    val genome_url from genome_url_ch
-    val genome_name from genome_name_ch
+    val genome_url
+    val genome_name
 
     output:
     path genome_name        , emit: ref_fasta
@@ -262,15 +267,16 @@ process PCGR_ANNOTATE {
 workflow {
     // Download reference files (runs once)
     //take: 
-    download_reference = DOWNLOAD_REFERENCE(genome_url_ch, genome_name_ch)
+    //download_reference = DOWNLOAD_REFERENCE(genome_url_ch, genome_name_ch)
+    reference()
 
     // Now process each sample in turn
     sample_info_ch \
         | FASTP_QC \
-        | ALIGN_BWA(download_reference.out.ref_fasta, download_reference.out.ref_fai) \
-        | MARKDUP_BQSR(download_reference.out.ref_fasta, 
-                       download_reference.out.ref_fai, 
-                       download_reference.out.ref_dict) \
-        | MUTECT2_CALL(download_reference.out.ref_fasta) \
+        | ALIGN_BWA(reference.out.ref_fasta, reference.out.ref_fai) \
+        | MARKDUP_BQSR(reference.out.ref_fasta, 
+                       reference.out.ref_fai, 
+                       reference.out.ref_dict) \
+        | MUTECT2_CALL(reference.out.ref_fasta) \
         | PCGR_ANNOTATE
 }
