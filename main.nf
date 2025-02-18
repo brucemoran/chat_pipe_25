@@ -26,13 +26,11 @@ params.genome_url  = 'https://storage.googleapis.com/genomics-public-data/refere
 //make the real name, use a base and download everything with that base
 params.genome_base = 'Homo_sapiens_assembly38'
 // Container images
-def containers = [
-    fastp   : 'quay.io/biocontainers/fastp:0.23.2--h0b8a92a_1',
-    bwa     : 'quay.io/biocontainers/bwa:0.7.17--hed695b0_7',
-    samtools: 'quay.io/biocontainers/samtools:1.11--h6270b1f_0',
-    gatk    : 'broadinstitute/gatk:4.2.6.1',
-    pcgr    : 'sigven/pcgr:latest'
-]
+params.fastp   = 'quay.io/biocontainers/fastp:0.23.2--h0b8a92a_1'
+params.bwa     = 'quay.io/biocontainers/bwa:0.7.17--hed695b0_7'
+params.samtools= 'quay.io/biocontainers/samtools:1.11--h6270b1f_0'
+params.gatk    = 'broadinstitute/gatk:4.2.6.1'
+params.pcgr    = 'sigven/pcgr:latest'
 
 /////////////////////////////////////////////////////
 // Processes
@@ -98,7 +96,7 @@ process DOWNLOAD_REFERENCE {
 // Run fastp QC on single- or paired-end FASTQs
 process FASTP_QC {
     tag { sample_id }
-    container containers.fastp
+    container "${params.fastp}"
     publishDir "${params.outdir}/fastp", mode: 'copy'
 
     input:
@@ -133,7 +131,7 @@ process FASTP_QC {
 // Align reads with bwa mem and produce a sorted BAM
 process ALIGN_BWA {
     tag { sample_id }
-    container containers.bwa
+    container "${params.bwa}"
     publishDir "${params.outdir}/bam", mode: 'copy'
 
     input:
@@ -174,7 +172,7 @@ process ALIGN_BWA {
 // Mark duplicates & perform Base Quality Score Recalibration
 process MARKDUP_BQSR {
     tag { sample_id }
-    container containers.gatk
+    container "${params.gatk}"
     publishDir "${params.outdir}/bam", mode: 'copy'
 
     input:
@@ -222,7 +220,7 @@ process MARKDUP_BQSR {
 // Call somatic variants with GATK Mutect2
 process MUTECT2_CALL {
     tag { sample_id }
-    container containers.gatk
+    container "${params.gatk}"
     publishDir "${params.outdir}/vcf", mode: 'copy'
 
     input:
@@ -246,7 +244,7 @@ process MUTECT2_CALL {
 // Annotate the final VCF with PCGR
 process PCGR_ANNOTATE {
     tag { sample_id }
-    container containers.pcgr
+    container "${params.pcgr}"
     publishDir "${params.outdir}/pcgr", mode: 'copy'
 
     input:
@@ -255,16 +253,19 @@ process PCGR_ANNOTATE {
     output:
     // All PCGR outputs typically go into a directory named <sample_id>
     // plus an annotated VCF. Adjust as needed.
-    path "${sample_id}.*"
+    path "${sample_id}_out/*"
 
     script:
-    def outPrefix = "${sample_id}.annotated"
+    def outPrefix = "${sample_id}.pcgr_anno"
     """
+    BUNDLE="https://insilico.hpc.uio.no/pcgr/pcgr_ref_data.20240927.grch38.tgz"
+    wget \${BUNDLE}
+    gzip -dc *tgz | tar -xvf -
     pcgr --input_vcf ${vcf} \\
          --genome_assembly grch38 \\
-         --pcgr_dir /pcgr_data \\
+         --pcgr_dir data \\
          --sample_id ${sample_id} \\
-         --output_dir . \\
+         --output_dir ${sample_id}_out \\
          --output_vcf ${outPrefix}.vcf \\
          --force_overwrite
     """
