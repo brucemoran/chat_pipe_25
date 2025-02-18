@@ -80,16 +80,6 @@ process DOWNLOAD_REFERENCE {
 
     script:
     """
-    ##if [ ! -f ${genome_base} ]; then
-    ##    echo "Downloading reference genome..."
-    ##    curl -L -o ${genome_base} ${genome_url}
-    ##else
-    ##   echo "Reference genome file already exists."
-    ##fi
-    
-    ##samtools faidx ${genome_name}
-    ##gatk CreateSequenceDictionary -R ${genome_name} -O ${genome_name.replaceAll('.fa$|.fasta$', '')}.dict
-    
     ## get fasta
     cho "Downloading: ${genome_base}.fasta"
     curl -L -o ${genome_base}.fasta ${genome_url}/${genome_base}.fasta
