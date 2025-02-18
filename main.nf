@@ -51,13 +51,9 @@ Channel
     .set { sample_info_ch }
 
 // Simple channels for the reference parameters
-Channel
-    .value(params.genome_url)
-    .set { genome_url_ch }
+genome_url_ch = Channel.value(params.genome_url)
 
-Channel
-    .value(params.genome_name)
-    .set { genome_name_ch }
+genome_name_ch Channel.value(params.genome_name)
 
 /////////////////////////////////////////////////////
 // Processes
