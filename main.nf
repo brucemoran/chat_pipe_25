@@ -21,9 +21,10 @@ params.outdir      = (params.outdir ?: 'results')
 
 // URL and filename for the GRCh38 reference genome. In practice, you can
 // supply your own pre-downloaded reference.
-params.genome_url  = 'https://storage.googleapis.com/genomics-public-data/references/hg38/v0/Homo_sapiens_assembly38.fasta'
-params.genome_name = 'GRCh38.fa'
-
+params.genome_url  = 'https://storage.googleapis.com/genomics-public-data/references/hg38/v0'
+//params.genome_base = 'GRCh38.fa'
+//make the real name, use a base and download everything with that base
+params.genome_base = 'Homo_sapiens_assembly38'
 // Container images
 def containers = [
     fastp   : 'quay.io/biocontainers/fastp:0.23.2--h0b8a92a_1',
@@ -34,24 +35,6 @@ def containers = [
 ]
 
 /////////////////////////////////////////////////////
-// Channel definitions
-/////////////////////////////////////////////////////
-
-// Read the CSV and create a channel of [sample_id, fastq1, fastq2]
-Channel
-    .fromPath(params.samples_csv)
-    .splitCsv(header:true)
-    .map { row ->
-        // For single-end data, fastq_2 might be empty
-        def sample_id = row.sample_id
-        def fq1       = row.fastq_1
-        def fq2       = row.fastq_2
-        return [ sample_id, fq1, fq2 ]
-    }
-    .set { sample_info_ch }
-
-
-/////////////////////////////////////////////////////
 // Processes
 /////////////////////////////////////////////////////
 
@@ -59,15 +42,16 @@ Channel
 workflow reference {
     take:
     genome_url_ch
-    genome_name_ch
+    genome_base_ch
 
     main:
-    DOWNLOAD_REFERENCE(genome_url_ch, genome_name_ch)
+    DOWNLOAD_REFERENCE(genome_url_ch, genome_base_ch)
     
     emit:
-    DOWNLOAD_REFERENCE.out[0] //ref_fasta
-    DOWNLOAD_REFERENCE.out[1] //ref_fai
-    DOWNLOAD_REFERENCE.out[2] //ref_dict
+    ref_fasta = DOWNLOAD_REFERENCE.out[0]
+    ref_fai = DOWNLOAD_REFERENCE.out[1]
+    ref_dict = DOWNLOAD_REFERENCE.out[2]
+
 }
 
 // Download the reference genome if it does not exist, then index it
@@ -78,24 +62,34 @@ process DOWNLOAD_REFERENCE {
 
     input:
     val genome_url
-    val genome_name
+    val genome_base
 
     output:
-    path genome_name        , emit: ref_fasta
-    path "${genome_name}.fai", emit: ref_fai
-    path "${genome_name.replaceAll('.fa$|.fasta$', '')}.dict", emit: ref_dict
+    path "${genome_base}.fasta"        , emit: ref_fasta
+    path "${genome_base}.fasta.fai", emit: ref_fai
+    path "${genome_base.replaceAll('.fa$|.fasta$', '')}.dict", emit: ref_dict
 
     script:
     """
-    if [ ! -f ${genome_name} ]; then
-        echo "Downloading reference genome..."
-        curl -L -o ${genome_name} ${genome_url}
-    else
-        echo "Reference genome file already exists."
-    fi
+    ##if [ ! -f ${genome_base} ]; then
+    ##    echo "Downloading reference genome..."
+    ##    curl -L -o ${genome_base} ${genome_url}
+    ##else
+    ##   echo "Reference genome file already exists."
+    ##fi
+    
+    ##samtools faidx ${genome_name}
+    ##gatk CreateSequenceDictionary -R ${genome_name} -O ${genome_name.replaceAll('.fa$|.fasta$', '')}.dict
+    
+    ## get fasta
+    curl -L -o ${genome_base}.fasta ${genome_url}/${genome_base}.fasta
 
-    samtools faidx ${genome_name}
-    gatk CreateSequenceDictionary -R ${genome_name} -O ${genome_name.replaceAll('.fa$|.fasta$', '')}.dict
+    ##get rest from API also
+    ##amb, ann, bwt, pac, sa, fai
+    for x in "amb" "ann" "bwt" "fai" "pac" "sa"; do
+        echo "Downloading: ${genome_base}.fasta.\$x"
+        curl -L -o ${genome_base}.fasta.\$x ${genome_url}/${genome_base}.fasta.\$x
+    done
     """
 }
 
@@ -269,21 +263,32 @@ process PCGR_ANNOTATE {
 workflow {
     // Download reference files (runs once)
     //take: 
-    //download_reference = DOWNLOAD_REFERENCE(genome_url_ch, genome_name_ch)
+    //download_reference = DOWNLOAD_REFERENCE(genome_url_ch, genome_base_ch)
     // Simple channels for the reference parameters
     genome_url_ch = Channel.value(params.genome_url)
 
-    genome_name_ch = Channel.value(params.genome_name)
+    genome_base_ch = Channel.value(params.genome_base)
 
-    reference(genome_url_ch, genome_name_ch)
+    reference(genome_url_ch, genome_base_ch)
 
+    // Read the CSV and create a channel of [sample_id, fastq1, fastq2]
+    sample_info_ch = Channel
+        .fromPath(params.samples_csv)
+        .splitCsv(header:true)
+        .map { row ->
+            // For single-end data, fastq_2 might be empty
+            def sample_id = row.sample_id
+            def fq1       = row.fastq_1
+            def fq2       = row.fastq_2
+            return [ sample_id, fq1, fq2 ]
+        }
     // Now process each sample in turn
-    // sample_info_ch \
-    //     | FASTP_QC \
-    //     | ALIGN_BWA(reference.out.ref_fasta, reference.out.ref_fai) \
-    //     | MARKDUP_BQSR(reference.out.ref_fasta, 
-    //                    reference.out.ref_fai, 
-    //                    reference.out.ref_dict) \
-    //     | MUTECT2_CALL(reference.out.ref_fasta) \
-    //     | PCGR_ANNOTATE
+    sample_info_ch \
+        | FASTP_QC \
+        | ALIGN_BWA(reference.out.ref_fasta, reference.out.ref_fai) \
+        | MARKDUP_BQSR(reference.out.ref_fasta, 
+                       reference.out.ref_fai, 
+                       reference.out.ref_dict) \
+        | MUTECT2_CALL(reference.out.ref_fasta) \
+        | PCGR_ANNOTATE
 }
