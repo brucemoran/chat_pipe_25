@@ -62,11 +62,6 @@ process DOWNLOAD_REFERENCE {
     output:
     path "${genome_base}.fasta", emit: ref_fa
     path "${genome_base}.fasta.fai", emit: ref_fai
-    path "${genome_base}.fasta.amb", emit: ref_amb
-    path "${genome_base}.fasta.ann", emit: ref_ann
-    path "${genome_base}.fasta.bwt", emit: ref_bwt
-    path "${genome_base}.fasta.pac", emit: ref_pac
-    path "${genome_base}.fasta.sa", emit: ref_sa
     path "${genome_base}.dict", emit: ref_dict
 
     script:
@@ -74,15 +69,9 @@ process DOWNLOAD_REFERENCE {
     ## get fasta
     echo "Downloading: ${genome_base}.fasta"
     curl -L -o ${genome_base}.fasta ${genome_url}/${genome_base}.fasta
-
-    ##get rest from API also
-    ##amb, ann, bwt, pac, sa, fai
-    for x in "amb" "ann" "bwt" "fai" "pac" "sa"; do
-        echo "Downloading: ${genome_base}.fasta.\$x"
-        curl -L -o ${genome_base}.fasta.\$x ${genome_url}/${genome_base}.fasta.\$x
-    done
-    echo "Downloading: ${genome_base}.dict"
-    curl -L -o ${genome_base}.dict ${genome_url}/${genome_base}.dict
+    echo "Indexing: ${genome_base}.fasta"
+    samtools faidx ${genome_base}.fasta
+    gatk CreateSequenceDictionary -R ${genome_base}.fasta -O ${genome_base}.dict
     """
 }
 
@@ -124,14 +113,9 @@ process ALIGN_BWA {
     path ref_fa   
     path ref_fai
     path ref_dict
-    path ref_ann
-    path ref_amb
-    path ref_bwt
-    path ref_pac
-    path ref_sa
 
     output:
-    tuple val(sample_id), path("${sample_id}.sorted.bam")
+    tuple val(sample_id), path("${sample_id}.bam")
     path ref_fa
     path ref_fai
     path ref_dict
@@ -141,15 +125,35 @@ process ALIGN_BWA {
     def r1 = cleaned_reads.find { it.name.contains('R1') }
     def r2 = cleaned_reads.find { it.name.contains('R2') }
     """
-    # Ensure bwa index is present
-    bwa index ${ref_fa} || true
+    # index fasta
+    bwa index ${ref_fa}
 
     if [ -f "${r2}" ]; then
-        bwa mem -t 4 ${ref_fa} ${r1} ${r2} | samtools sort -o ${sample_id}.sorted.bam
+        bwa mem -t 4 ${ref_fa} ${r1} ${r2} > ${sample_id}.bam
     else
-        bwa mem -t 4 ${ref_fa} ${r1}       | samtools sort -o ${sample_id}.sorted.bam
+        bwa mem -t 4 ${ref_fa} ${r1} > ${sample_id}.bam
     fi
+    """
+}
 
+process SAMTOOLS {
+    tag { sample_id }
+
+    input:
+    tuple val(sample_id), path(bam)
+    path ref_fa
+    path ref_fai
+    path ref_dict
+
+    output:
+    tuple val(sample_id), path("${sample_id}.sorted.bam")
+    path ref_fa
+    path ref_fai
+    path ref_dict
+
+    script:
+    """
+    samtools sort -o ${sample_id}.sorted.bam
     samtools index ${sample_id}.sorted.bam
     """
 }
@@ -270,28 +274,24 @@ workflow {
 
     // Read the CSV and create a channel of [sample_id, fastq1, fastq2]
     sample_info_ch = Channel
-        .fromPath(params.samples_csv)
-        .splitCsv(header:true)
-        .map { row ->
-            // For single-end data, fastq_2 might be empty
-            def sample_id = row.sample_id
-            def fq1       = row.fastq_1
-            def fq2       = row.fastq_2
-            return [ sample_id, fq1, fq2 ]
-        }
+                        .fromPath(params.samples_csv)
+                        .splitCsv(header:true)
+                        .map { row ->
+                            // For single-end data, fastq_2 might be empty
+                            def sample_id = row.sample_id
+                            def fq1       = row.fastq_1
+                            def fq2       = row.fastq_2
+                            return [ sample_id, fq1, fq2 ]
+                        }
     // Now process each sample in turn
     //sample_info_ch.view()
     FASTP_QC(sample_info_ch)
     ALIGN_BWA(FASTP_QC.out,
               reference.out.ref_fa, 
               reference.out.ref_fai,
-              reference.out.ref_dict,
-              reference.out.ref_ann,
-              reference.out.ref_amb,
-              reference.out.ref_bwt,
-              reference.out.ref_pac,
-              reference.out.ref_sa)
-    MARKDUP_BQSR(ALIGN_BWA.out)
+              reference.out.ref_dict)
+    SAMTOOLS(ALIGN_BWA.out)
+    MARKDUP_BQSR(SAMTOOLS.out)
     MUTECT2_CALL(MARKDUP_BQSR.out)
     PCGR_ANNOTATE(MUTECT2_CALL.out)
 }
