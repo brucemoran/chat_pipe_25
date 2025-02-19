@@ -259,12 +259,13 @@ process GATK_BQSR {
     def outBamPrefix = "${sample_id}.dedup.recal"
     """
     ln -s ${ref_dict} \$(basename ${ref_dict} | sed 's/fasta.//')
+    gunzip ${okg_vcf} > okg.vcf
     # Example known-sites from GATK resources (b37 used for demonstration).
     # Adjust for GRCh38 best-practice known sites in a real pipeline
     gatk BaseRecalibrator \\
         -R ${ref_fa} \\
         -I ${sample_id}.dedup.bam \\
-        ##--known-sites ${okg_vcf} \\
+        --known-sites okg.vcf \\
         -O ${sample_id}.recal_data.table
 
     gatk ApplyBQSR \\
