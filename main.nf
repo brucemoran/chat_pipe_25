@@ -45,6 +45,8 @@ workflow reference {
     ref_fa = INDEX_REFERENCE.out[0]
     ref_fai = INDEX_REFERENCE.out[1]
     ref_dict = GATK_DICT_REFERENCE.out
+    okg_vcf = CURL_REFERENCE.out[1]
+    okg_tbi = CURL_REFERENCE.out[2]
 }
 
 // Download the reference genome if it does not exist, then index it
@@ -58,12 +60,17 @@ process CURL_REFERENCE {
 
     output:
     path "${genome_base}.fasta", emit: ref_fa
-
+    path "1000G_omni2.5.hg38.vcf.gz", emit: okg_vcf
+    path "1000G_omni2.5.hg38.vcf.gz.tbi", emit: okg_tbi
+    
     script:
     """
     ## get fasta
     echo "Downloading: ${genome_base}.fasta"
     curl -L -o ${genome_base}.fasta ${genome_url}/${genome_base}.fasta
+
+    curl -L -o 1000G_omni2.5.hg38.vcf.gz ${genome_url}.1000G_omni2.5.hg38.vcf.gz 
+    curl -L -o 1000G_omni2.5.hg38.vcf.gz.tbi ${genome_url}.1000G_omni2.5.hg38.vcf.gz.tbi 
     """
 }
 
@@ -379,7 +386,10 @@ workflow {
     INDEX_BAM(ALIGN_BWA.out)
     GATK_MARKDUP(INDEX_BAM.out)
     INDEX_MARKDUP(GATK_MARKDUP.out)
-    GATK_BQSR(INDEX_MARKDUP.out, reference.out.ref_dict)
+    GATK_BQSR(INDEX_MARKDUP.out, 
+              reference.out.ref_dict, 
+              reference.out.okg_vcf, 
+              reference.out.okg_tbi)
     INDEX_BQSR(GATK_BQSR.out)
     GATK_MUTECT2_CALL(INDEX_BQSR.out)
     PCGR_ANNOTATE(GATK_MUTECT2_CALL.out)
