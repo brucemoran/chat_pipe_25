@@ -249,6 +249,8 @@ process GATK_BQSR {
     path ref_fa
     path ref_fai
     path ref_dict
+    path okg_vcf
+    path okg_tbi
 
     output:
     tuple val(sample_id), path("${sample_id}.dedup.recal.bam")
@@ -264,8 +266,7 @@ process GATK_BQSR {
     gatk BaseRecalibrator \\
         -R ${ref_fa} \\
         -I ${sample_id}.dedup.bam \\
-        --known-sites https://storage.googleapis.com/gatk-best-practices/somatic-b37/1000G_phase1.indels.b37.vcf.gz \\
-        --known-sites https://storage.googleapis.com/gatk-best-practices/somatic-b37/dbsnp_138.b37.vcf.gz \\
+        --known-sites ${okg_vcf} \\
         -O ${sample_id}.recal_data.table
 
     gatk ApplyBQSR \\
