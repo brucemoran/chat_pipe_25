@@ -231,6 +231,7 @@ process INDEX_MARKDUP {
     samtools index ${sample_id}.dedup.bam
     """
 }
+
 // Mark duplicates & perform Base Quality Score Recalibration
 process GATK_BQSR {
     tag { sample_id }
@@ -240,6 +241,7 @@ process GATK_BQSR {
     tuple val(sample_id), path(bam)
     path ref_fa
     path ref_fai
+    path ref_dict
 
     output:
     tuple val(sample_id), path("${sample_id}.dedup.recal.bam")
@@ -376,7 +378,7 @@ workflow {
     INDEX_BAM(ALIGN_BWA.out)
     GATK_MARKDUP(INDEX_BAM.out)
     INDEX_MARKDUP(GATK_MARKDUP.out)
-    GATK_BQSR(INDEX_MARKDUP.out)
+    GATK_BQSR(INDEX_MARKDUP.out, reference.out.ref_dict)
     INDEX_BQSR(GATK_BQSR.out)
     GATK_MUTECT2_CALL(INDEX_BQSR.out)
     PCGR_ANNOTATE(GATK_MUTECT2_CALL.out)
