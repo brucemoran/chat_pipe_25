@@ -260,14 +260,15 @@ process GATK_BQSR {
     """
     ## soft-link to rename dict file
     ln -s ${ref_dict} \$(basename ${ref_dict} | sed 's/fasta.//')
-    ## known-sites needs unzip VCF
-    gunzip ${okg_vcf}
+    wget https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/1000G_omni2.5.hg38.vcf.gz
+    wget https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/1000G_omni2.5.hg38.vcf.gz.tbi
+
     # Example known-sites from GATK resources (b37 used for demonstration).
     # Adjust for GRCh38 best-practice known sites in a real pipeline
     gatk BaseRecalibrator \\
         -R ${ref_fa} \\
         -I ${sample_id}.dedup.bam \\
-        --known-sites \$(basename ${okg_vcf} | sed 's/.gz//') \\
+        --known-sites 1000G_omni2.5.hg38.vcf.gz \\
         -O ${sample_id}.recal_data.table
 
     gatk ApplyBQSR \\
