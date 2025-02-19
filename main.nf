@@ -44,7 +44,7 @@ workflow reference {
     emit:
     ref_fa = INDEX_REFERENCE.out[0]
     ref_fai = INDEX_REFERENCE.out[1]
-    ref_dict = DICT_REFERENCE.out
+    ref_dict = GATK_DICT_REFERENCE.out
 }
 
 // Download the reference genome if it does not exist, then index it
