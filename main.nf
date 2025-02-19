@@ -251,6 +251,7 @@ process GATK_BQSR {
     script:
     def outBamPrefix = "${sample_id}.dedup.recal"
     """
+    ln -s ${fa_dict} \$(basename ${fa_dict} | sed 's/fasta.//')
     # Example known-sites from GATK resources (b37 used for demonstration).
     # Adjust for GRCh38 best-practice known sites in a real pipeline
     gatk BaseRecalibrator \\
