@@ -230,8 +230,6 @@ process INDEX_MARKDUP {
 
     output:
     tuple val(sample_id), path("${sample_id}.dedup.bam")
-    path ref_fa
-    path ref_fai
 
     script:
     """
@@ -388,6 +386,8 @@ workflow {
     GATK_MARKDUP(INDEX_BAM.out)
     INDEX_MARKDUP(GATK_MARKDUP.out)
     GATK_BQSR(INDEX_MARKDUP.out, 
+              reference.out.ref_fa, 
+              reference.out.ref_fai,
               reference.out.ref_dict, 
               reference.out.okg_vcf, 
               reference.out.okg_tbi)
