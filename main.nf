@@ -181,14 +181,15 @@ process INDEX_BAM {
     path ref_fai
 
     output:
-    tuple val(sample_id), path("${sample_id}.sorted.bam")
+    tuple val(sample_id), path("${sample_id}.sort.bam"), path("${sample_id}.sort.bam.bai")
     path ref_fa
     path ref_fai
 
     script:
     """
-    samtools sort -o ${sample_id}.sorted.bam
-    samtools index ${sample_id}.sorted.bam
+    bgzip ${bam}
+    samtools sort -o ${sample_id}.sort.bam ${bam}.bgz
+    samtools index ${sample_id}.sort.bam
     """
 }
 
@@ -198,7 +199,7 @@ process GATK_MARKDUP {
     publishDir "${params.outdir}/bam", mode: 'copy'
 
     input:
-    tuple val(sample_id), path(bam)
+    tuple val(sample_id), path(bam), path(bai)
     path ref_fa
     path ref_fai
 
@@ -224,16 +225,17 @@ process INDEX_MARKDUP {
     publishDir "${params.outdir}/bam", mode: 'copy'
 
     input:
-    tuple val(sample_id), path(bam)
+    tuple val(sample_id), path(bam), path("*dedup.bam.bai")
     path ref_fa
     path ref_fai
 
     output:
-    tuple val(sample_id), path("${sample_id}.dedup.bam")
+    tuple val(sample_id), path(bam), path("")
 
     script:
     """
-    samtools index ${sample_id}.dedup.bam
+    bgzip ${bam}
+    samtools index ${bam}.gz
     """
 }
 
@@ -243,7 +245,7 @@ process GATK_BQSR {
     publishDir "${params.outdir}/bam", mode: 'copy'
 
     input:
-    tuple val(sample_id), path(bam)
+    tuple val(sample_id), path(bam), path(bai)
     path ref_fa
     path ref_fai
     path ref_dict
@@ -288,13 +290,14 @@ process INDEX_BQSR {
     path ref_fai
 
     output:
-    tuple val(sample_id), path("${sample_id}.dedup.recal.bam")
+    tuple val(sample_id), path("${sample_id}.dedup.recal.bam"), path("${sample_id}.dedup.recal.bam.bai")
     path ref_fa
     path ref_fai
 
     script:
     def outBamPrefix = "${sample_id}.dedup.recal"
     """
+    bgzip ${bam}
     samtools index ${outBamPrefix}.bam
     """
 }
@@ -305,7 +308,7 @@ process GATK_MUTECT2_CALL {
     publishDir "${params.outdir}/vcf", mode: 'copy'
 
     input:
-    tuple val(sample_id), path(bam)
+    tuple val(sample_id), path(bam), path(bai)
     path ref_fa
     path ref_fai
 
