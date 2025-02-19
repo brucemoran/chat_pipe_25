@@ -70,7 +70,7 @@ process CURL_REFERENCE {
     curl -L -o ${genome_base}.fasta ${genome_url}/${genome_base}.fasta
 
     curl -L -o 1000G_omni2.5.hg38.vcf.gz ${genome_url}.1000G_omni2.5.hg38.vcf.gz 
-    curl -L -o 1000G_omni2.5.hg38.vcf.gz.tbi ${genome_url}.1000G_omni2.5.hg38.vcf.gz.tbi 
+    curl -L -o 1000G_omni2.5.hg38.vcf.gz.tbi ${genome_url}.1000G_omni2.5.hg38.vcf.gz.tbi
     """
 }
 
@@ -258,14 +258,16 @@ process GATK_BQSR {
     script:
     def outBamPrefix = "${sample_id}.dedup.recal"
     """
+    ## soft-link to rename dict file
     ln -s ${ref_dict} \$(basename ${ref_dict} | sed 's/fasta.//')
-    gunzip ${okg_vcf} > okg.vcf
+    ## known-sites needs unzip VCF
+    gunzip ${okg_vcf}
     # Example known-sites from GATK resources (b37 used for demonstration).
     # Adjust for GRCh38 best-practice known sites in a real pipeline
     gatk BaseRecalibrator \\
         -R ${ref_fa} \\
         -I ${sample_id}.dedup.bam \\
-        --known-sites okg.vcf \\
+        --known-sites \$(basename ${okg_vcf} | sed 's/.gz//') \\
         -O ${sample_id}.recal_data.table
 
     gatk ApplyBQSR \\
