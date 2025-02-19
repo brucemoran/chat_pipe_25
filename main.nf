@@ -247,8 +247,6 @@ process GATK_BQSR {
     path ref_fa
     path ref_fai
     path ref_dict
-    path okg_vcf
-    path okg_tbi
 
     output:
     tuple val(sample_id), path("${sample_id}.dedup.recal.bam")
@@ -392,9 +390,7 @@ workflow {
     GATK_BQSR(INDEX_MARKDUP.out, 
               reference.out.ref_fa, 
               reference.out.ref_fai,
-              reference.out.ref_dict, 
-              reference.out.okg_vcf, 
-              reference.out.okg_tbi)
+              reference.out.ref_dict)
     INDEX_BQSR(GATK_BQSR.out)
     GATK_MUTECT2_CALL(INDEX_BQSR.out)
     PCGR_ANNOTATE(GATK_MUTECT2_CALL.out)
