@@ -374,7 +374,7 @@ workflow {
               reference.out.ref_fai,
               reference.out.ref_dict)
     INDEX_BAM(ALIGN_BWA.out)
-    GATK_MARKDUP(SAMTOOLS.out)
+    GATK_MARKDUP(INDEX_BAM.out)
     INDEX_MARKDUP(GATK_MARKDUP.out)
     GATK_BQSR(INDEX_MARKDUP.out)
     INDEX_BQSR(GATK_BQSR.out)
