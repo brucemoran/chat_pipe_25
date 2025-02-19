@@ -264,7 +264,7 @@ process GATK_BQSR {
     gatk BaseRecalibrator \\
         -R ${ref_fa} \\
         -I ${sample_id}.dedup.bam \\
-        --known-sites ${okg_vcf} \\
+        ##--known-sites ${okg_vcf} \\
         -O ${sample_id}.recal_data.table
 
     gatk ApplyBQSR \\
