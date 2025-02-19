@@ -80,6 +80,8 @@ process INDEX_REFERENCE {
 
     input:
     path ref_fa
+    path okg_vcf
+    path okg_tbi
 
     output:
     path "${ref_fa}", emit: ref_fa
