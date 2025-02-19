@@ -38,8 +38,8 @@ workflow reference {
 
     main:
     CURL_REFERENCE(genome_url_ch, genome_base_ch)
-    INDEX_REFERENCE(CURL_REFERENCE.out)
-    GATK_DICT_REFERENCE(CURL_REFERENCE.out)
+    INDEX_REFERENCE(CURL_REFERENCE.out[0])
+    GATK_DICT_REFERENCE(CURL_REFERENCE.out[0])
 
     emit:
     ref_fa = INDEX_REFERENCE.out[0]
@@ -80,8 +80,6 @@ process INDEX_REFERENCE {
 
     input:
     path ref_fa
-    path okg_vcf
-    path okg_tbi
 
     output:
     path "${ref_fa}", emit: ref_fa
