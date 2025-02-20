@@ -225,12 +225,12 @@ process INDEX_MARKDUP {
     publishDir "${params.outdir}/bam", mode: 'copy'
 
     input:
-    tuple val(sample_id), path(bam), path("*dedup.bam.bai")
+    tuple val(sample_id), path(bam)
     path ref_fa
     path ref_fai
 
     output:
-    tuple val(sample_id), path(bam), path("")
+    tuple val(sample_id), path(bam), path("${bam}.bai")
 
     script:
     """
