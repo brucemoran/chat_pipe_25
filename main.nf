@@ -328,6 +328,8 @@ process GATK_MUTECT2_CALL {
 
     script:
     """
+    ## soft-link to rename dict file
+    ln -s ${ref_dict} \$(basename ${ref_dict} | sed 's/fasta.//')
     gatk Mutect2 \\
         -R ${ref_fa} \\
         -I ${bam} \\
