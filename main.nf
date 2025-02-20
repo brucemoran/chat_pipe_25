@@ -187,8 +187,7 @@ process INDEX_BAM {
 
     script:
     """
-    bgzip ${bam}
-    samtools sort -o ${sample_id}.sort.bam ${bam}.bgz
+    samtools sort -o ${sample_id}.sort.bam ${bam}
     samtools index ${sample_id}.sort.bam
     """
 }
@@ -210,6 +209,7 @@ process GATK_MARKDUP {
 
     script:
     """
+    ##bgzip ${bam}
     gatk MarkDuplicates \\
         -I ${bam} \\
         -O ${sample_id}.dedup.bam \\
@@ -234,8 +234,8 @@ process INDEX_MARKDUP {
 
     script:
     """
-    bgzip ${bam}
-    samtools index ${bam}.gz
+    ##bgzip ${bam}
+    samtools index ${bam}
     """
 }
 
@@ -297,7 +297,7 @@ process INDEX_BQSR {
     script:
     def outBamPrefix = "${sample_id}.dedup.recal"
     """
-    bgzip ${bam}
+##    bgzip ${bam}
     samtools index ${outBamPrefix}.bam
     """
 }
