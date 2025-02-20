@@ -330,7 +330,7 @@ process GATK_MUTECT2_CALL {
     """
     ## soft-link to rename dict file
     ln -s ${ref_dict} \$(basename ${ref_dict} | sed 's/fasta.//')
-    gatk Mutect2 \\
+    gatk --java-options "-Xmx19G" Mutect2 \\
         -R ${ref_fa} \\
         -I ${bam} \\
         -tumor ${sample_id} \\
