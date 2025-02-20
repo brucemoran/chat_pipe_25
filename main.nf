@@ -357,9 +357,14 @@ process PCGR_ANNOTATE {
     BUNDLE="https://insilico.hpc.uio.no/pcgr/pcgr_ref_data.20240927.grch38.tgz"
     wget \${BUNDLE}
     gzip -dc *tgz | tar -xvf - --no-same-owner
+
+    wget https://ftp.ensembl.org/pub/release-112/variation/indexed_vep_cache/homo_sapiens_vep_112_GRCh38.tar.gz
+    gzip -dc homo_sapiens_vep_112_GRCh38.tar.gz | tar xvf -
+
     pcgr --input_vcf ${vcf} \\
          --genome_assembly grch38 \\
-         --pcgr_dir data \\
+         --vep_dir homo_sapiens_vep_112_GRCh38 \\
+         --refdata_dir data \\
          --sample_id ${sample_id} \\
          --output_dir ${sample_id}_out \\
          --output_vcf ${outPrefix}.vcf \\
