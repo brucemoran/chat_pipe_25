@@ -321,6 +321,7 @@ process GATK_MUTECT2_CALL {
     tuple val(sample_id), path(bam), path(bai)
     path ref_fa
     path ref_fai
+    path ref_dict
 
     output:
     tuple val(sample_id), path("${sample_id}.mutect2.vcf.gz")
@@ -405,6 +406,7 @@ workflow {
               reference.out.ref_fai,
               reference.out.ref_dict)
     INDEX_BQSR(GATK_BQSR.out)
-    GATK_MUTECT2_CALL(INDEX_BQSR.out)
+    GATK_MUTECT2_CALL(INDEX_BQSR.out,
+              reference.out.ref_dict)
     PCGR_ANNOTATE(GATK_MUTECT2_CALL.out)
 }
