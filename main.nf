@@ -263,17 +263,27 @@ process GATK_BQSR {
     wget https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/1000G_omni2.5.hg38.vcf.gz
     wget https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/1000G_omni2.5.hg38.vcf.gz.tbi
 
+    ## add readgroups
+    gatk AddOrReplaceReadGroups \\
+        I=${bam} \
+        O=rg.bam \\
+        RGID=1 \\
+        RGLB=lib2 \\
+        RGPL=illumina \\
+        RGPU=unit1 \\
+        RGSM=3
+        
     # Example known-sites from GATK resources (b37 used for demonstration).
     # Adjust for GRCh38 best-practice known sites in a real pipeline
     gatk BaseRecalibrator \\
         -R ${ref_fa} \\
-        -I ${sample_id}.dedup.bam \\
+        -I rg.bam \\
         --known-sites 1000G_omni2.5.hg38.vcf.gz \\
         -O ${sample_id}.recal_data.table
 
     gatk ApplyBQSR \\
         -R ${ref_fa} \\
-        -I ${sample_id}.dedup.bam \\
+        -I rg.bam \\
         --bqsr-recal-file ${sample_id}.recal_data.table \\
         -O ${outBamPrefix}.bam
     """
