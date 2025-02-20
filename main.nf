@@ -356,7 +356,7 @@ process PCGR_ANNOTATE {
     """
     BUNDLE="https://insilico.hpc.uio.no/pcgr/pcgr_ref_data.20240927.grch38.tgz"
     wget \${BUNDLE}
-    gzip -dc *tgz | tar -xvf -
+    gzip -dc *tgz | tar -xvf - --no-same-owner
     pcgr --input_vcf ${vcf} \\
          --genome_assembly grch38 \\
          --pcgr_dir data \\
