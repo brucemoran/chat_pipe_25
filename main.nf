@@ -361,12 +361,13 @@ process PCGR_ANNOTATE {
     wget https://ftp.ensembl.org/pub/release-112/variation/indexed_vep_cache/homo_sapiens_vep_112_GRCh38.tar.gz
     gzip -dc homo_sapiens_vep_112_GRCh38.tar.gz | tar xvf - --no-same-owner
 
-    pcgr --input_vcf ${vcf} \\
-         --genome_assembly grch38 \\
+    pcgr --assay TARGETED \\
+         --input_vcf ${vcf} \\
          --vep_dir homo_sapiens/112_GRCh38 \\
          --refdata_dir data \\
-         --sample_id ${sample_id} \\
          --output_dir ${sample_id}_out \\
+         --genome_assembly grch38 \\
+         --sample_id ${sample_id} \\
          --output_vcf ${outPrefix}.vcf \\
          --force_overwrite
     """
