@@ -368,7 +368,6 @@ process PCGR_ANNOTATE {
          --output_dir ${sample_id}_out \\
          --genome_assembly grch38 \\
          --sample_id ${sample_id} \\
-         --output_vcf ${outPrefix}.vcf \\
          --force_overwrite
     """
 }
