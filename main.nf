@@ -307,7 +307,7 @@ process INDEX_BQSR {
     script:
     def outBamPrefix = "${sample_id}.dedup.recal"
     """
-##    bgzip ${bam}
+    ##bgzip ${bam}
     samtools index ${outBamPrefix}.bam
     """
 }
@@ -359,11 +359,11 @@ process PCGR_ANNOTATE {
     gzip -dc *tgz | tar -xvf - --no-same-owner
 
     wget https://ftp.ensembl.org/pub/release-112/variation/indexed_vep_cache/homo_sapiens_vep_112_GRCh38.tar.gz
-    gzip -dc homo_sapiens_vep_112_GRCh38.tar.gz | tar xvf -
+    gzip -dc homo_sapiens_vep_112_GRCh38.tar.gz | tar xvf - --no-same-owner
 
     pcgr --input_vcf ${vcf} \\
          --genome_assembly grch38 \\
-         --vep_dir homo_sapiens_vep_112_GRCh38 \\
+         --vep_dir homo_sapiens/112_GRCh38 \\
          --refdata_dir data \\
          --sample_id ${sample_id} \\
          --output_dir ${sample_id}_out \\
