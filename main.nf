@@ -378,7 +378,7 @@ process PCGR_ANNOTATE {
     pcgr --assay TARGETED \\
          --input_vcf ${vcf} \\
          --vep_dir ./ \\
-         --refdata_dir ${data} \\
+         --refdata_dir ./ \\
          --output_dir ${sample_id}_out \\
          --genome_assembly grch38 \\
          --sample_id ${sample_id} \\
