@@ -340,7 +340,7 @@ process GATK_MUTECT2_CALL {
 
 // References for PCGR
 process PCGR_REFERENCE {
-    tag { sample_id }
+    tag { "PCGR_REFS" }
 
     output:
     // All PCGR outputs typically go into a directory named <sample_id>
@@ -348,7 +348,6 @@ process PCGR_REFERENCE {
     tuple path("homo_sapiens"), path("data")
 
     script:
-    def outPrefix = "${sample_id}.pcgr_anno"
     """
     BUNDLE="https://insilico.hpc.uio.no/pcgr/pcgr_ref_data.20240927.grch38.tgz"
     wget \${BUNDLE}
