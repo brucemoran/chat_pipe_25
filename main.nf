@@ -324,7 +324,7 @@ process GATK_MUTECT2_CALL {
     path ref_dict
 
     output:
-    tuple val(sample_id), path("${sample_id}.mutect2.vcf.gz")
+    tuple val(sample_id), path("${sample_id}.mutect2.vcf.gz"), path("${sample_id}.mutect2.vcf.gz.tbi")
 
     script:
     """
@@ -338,18 +338,14 @@ process GATK_MUTECT2_CALL {
     """
 }
 
-// Annotate the final VCF with PCGR
-process PCGR_ANNOTATE {
+// References for PCGR
+process PCGR_REFERENCE {
     tag { sample_id }
-    publishDir "${params.outdir}/pcgr", mode: 'copy'
-
-    input:
-    tuple val(sample_id), path(vcf)
 
     output:
     // All PCGR outputs typically go into a directory named <sample_id>
     // plus an annotated VCF. Adjust as needed.
-    path "${sample_id}_out/*"
+    tuple path("homo_sapiens"), path("data")
 
     script:
     def outPrefix = "${sample_id}.pcgr_anno"
@@ -360,11 +356,30 @@ process PCGR_ANNOTATE {
 
     wget https://ftp.ensembl.org/pub/release-112/variation/indexed_vep_cache/homo_sapiens_vep_112_GRCh38.tar.gz
     gzip -dc homo_sapiens_vep_112_GRCh38.tar.gz | tar xvf - --no-same-owner
+    """
+}
 
+// Annotate the final VCF with PCGR
+process PCGR_ANNOTATE {
+    tag { sample_id }
+    publishDir "${params.outdir}/pcgr", mode: 'copy'
+
+    input:
+    tuple val(sample_id), path(vcf), path(tbi)
+    tuple path(vep_dir), path(data)
+
+    output:
+    // All PCGR outputs typically go into a directory named <sample_id>
+    // plus an annotated VCF. Adjust as needed.
+    path "${sample_id}_out/*"
+
+    script:
+    def outPrefix = "${sample_id}.pcgr_anno"
+    """
     pcgr --assay TARGETED \\
          --input_vcf ${vcf} \\
-         --vep_dir homo_sapiens/112_GRCh38 \\
-         --refdata_dir data \\
+         --vep_dir ${vep_dir}/112_GRCh38 \\
+         --refdata_dir ${data} \\
          --output_dir ${sample_id}_out \\
          --genome_assembly grch38 \\
          --sample_id ${sample_id} \\
@@ -415,5 +430,7 @@ workflow {
     INDEX_BQSR(GATK_BQSR.out)
     GATK_MUTECT2_CALL(INDEX_BQSR.out,
               reference.out.ref_dict)
-    PCGR_ANNOTATE(GATK_MUTECT2_CALL.out)
+    PCGR_REFERENCE()      
+    PCGR_ANNOTATE(GATK_MUTECT2_CALL.out,
+                  PCGR_REFERENCE.out)
 }
