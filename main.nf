@@ -16,6 +16,7 @@ nextflow.enable.dsl=2
 /////////////////////////////////////////////////////
 // Pipeline parameters
 /////////////////////////////////////////////////////
+//format: sample_id,fastq_1,fastq_2(optional)
 params.samples_csv = (params.samples_csv ?: 'samples.csv')
 params.outdir      = (params.outdir ?: 'results')
 
