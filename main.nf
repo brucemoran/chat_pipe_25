@@ -442,7 +442,12 @@ workflow {
     ALIGN_BWA(FASTP_QC.out,
               reference.out.ref_fa, 
               reference.out.ref_fai,
-              reference.out.ref_dict)
+              reference.out.ref_dict,
+              reference.out.ref_amb,
+              reference.out.ref_ann,
+              reference.out.ref_bwt,
+              reference.out.ref_pac,
+              reference.out.ref_sa)
     INDEX_BAM(ALIGN_BWA.out)
     GATK_MARKDUP(INDEX_BAM.out)
     INDEX_MARKDUP(GATK_MARKDUP.out)
