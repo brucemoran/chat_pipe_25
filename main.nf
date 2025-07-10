@@ -94,6 +94,28 @@ process INDEX_REFERENCE {
     """
 }
 
+// Align reads with bwa mem and produce a sorted BAM
+process INDEX_BWA {
+    tag 'download_grch38'
+    publishDir "${params.outdir}/reference", mode: 'copy'
+
+    input:
+    path ref_fa   
+
+    output:
+    path "${ref_fa}.amb", emit: ref_amb
+    path "${ref_fa}.ann", emit: ref_ann
+    path "${ref_fa}.bwt", emit: ref_bwt
+    path "${ref_fa}.pac", emit: ref_pac
+    path "${ref_fa}.sa", emit: ref_sa
+
+    script:
+    """
+    # index fasta
+    bwa index ${ref_fa}
+    """
+}
+
 process GATK_DICT_REFERENCE {
     tag 'download_grch38'
     publishDir "${params.outdir}/reference", mode: 'copy'
@@ -150,6 +172,11 @@ process ALIGN_BWA {
     path ref_fa   
     path ref_fai
     path ref_dict
+    path ref_amb
+    path ref_ann
+    path ref_bwt
+    path ref_pac
+    path ref_sa
 
     output:
     tuple val(sample_id), path("${sample_id}.bam")
@@ -161,9 +188,6 @@ process ALIGN_BWA {
     def r1 = cleaned_reads.find { it.name.contains('R1') }
     def r2 = cleaned_reads.find { it.name.contains('R2') }
     """
-    # index fasta
-    bwa index ${ref_fa}
-
     if [ -f "${r2}" ]; then
         bwa mem -t 4 ${ref_fa} ${r1} ${r2} > ${sample_id}.bam
     else
