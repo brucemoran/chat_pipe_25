@@ -41,6 +41,7 @@ workflow reference {
     CURL_REFERENCE(genome_url_ch, genome_base_ch)
     INDEX_REFERENCE(CURL_REFERENCE.out[0])
     GATK_DICT_REFERENCE(CURL_REFERENCE.out[0])
+    INDEX_BWA(CURL_REFERENCE.out[0])
 
     emit:
     ref_fa = INDEX_REFERENCE.out[0]
@@ -48,6 +49,11 @@ workflow reference {
     ref_dict = GATK_DICT_REFERENCE.out
     okg_vcf = CURL_REFERENCE.out[1]
     okg_tbi = CURL_REFERENCE.out[2]
+    ref_amb = INDEX_BWA.out[0]
+    ref_ann = INDEX_BWA.out[1]
+    ref_bwt = INDEX_BWA.out[2]
+    ref_pac = INDEX_BWA.out[3]
+    ref_sa = INDEX_BWA.out[4]
 }
 
 // Download the reference genome if it does not exist, then index it
